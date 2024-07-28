@@ -1,24 +1,37 @@
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class Student {
     private int id;
-    private Map<Assignment, Boolean> assignmentStatus;
+    private Map<Assignment, Boolean> assignments;
+    private Map<Assignment, Integer> marks;
 
     public Student(int id) {
         this.id = id;
-        this.assignmentStatus = new HashMap<>();
+        this.assignments = new HashMap<>();
+        this.marks = new HashMap<>();
     }
 
     public int getId() {
         return id;
     }
 
-    public Map<Assignment, Boolean> getAssignmentStatus() {
-        return assignmentStatus;
+    public void submitAssignment(Assignment assignment, boolean isLate) {
+        assignments.put(assignment, isLate);
     }
 
-    public void submitAssignment(Assignment assignment) {
-        assignmentStatus.put(assignment, true);
+    public boolean hasSubmitted(Assignment assignment) {
+        return assignments.containsKey(assignment);
+    }
+
+    public boolean isLateSubmission(Assignment assignment) {
+        return assignments.getOrDefault(assignment, false);
+    }
+
+    public void assignMarks(Assignment assignment, int marks) {
+        this.marks.put(assignment, marks);
+    }
+
+    public Integer getMarks(Assignment assignment) {
+        return marks.get(assignment);
     }
 }
