@@ -12,3 +12,4 @@ public class CustomLogger {
         logger.log(Level.SEVERE, message, e);
     }
 }
+
