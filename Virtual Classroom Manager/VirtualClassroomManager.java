@@ -1,6 +1,5 @@
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDate;
+import java.util.*;
 
 public class VirtualClassroomManager {
     private static VirtualClassroomManager instance;
@@ -10,7 +9,7 @@ public class VirtualClassroomManager {
         this.classrooms = new HashMap<>();
     }
 
-    public static synchronized VirtualClassroomManager getInstance() {
+    public static VirtualClassroomManager getInstance() {
         if (instance == null) {
             instance = new VirtualClassroomManager();
         }
@@ -24,7 +23,15 @@ public class VirtualClassroomManager {
         }
         classrooms.put(name, new Classroom(name));
         System.out.println("Classroom " + name + " has been created.");
-        CustomLogger.logInfo("Created classroom: " + name);
+    }
+
+    public void removeClassroom(String name) {
+        if (!classrooms.containsKey(name)) {
+            System.out.println("Classroom not found.");
+            return;
+        }
+        classrooms.remove(name);
+        System.out.println("Classroom " + name + " has been removed.");
     }
 
     public void addStudent(int id, String className) {
@@ -33,21 +40,29 @@ public class VirtualClassroomManager {
             System.out.println("Classroom not found.");
             return;
         }
+        if (classroom.findStudentById(id) != null) {
+            System.out.println("Student already enrolled.");
+            return;
+        }
         classroom.addStudent(new Student(id));
         System.out.println("Student " + id + " has been enrolled in " + className + ".");
-        CustomLogger.logInfo("Added student " + id + " to classroom " + className);
     }
 
-    public void scheduleAssignment(String className, String details) {
+    public void scheduleAssignment(String className, String details, LocalDate deadline) {
         Classroom classroom = classrooms.get(className);
         if (classroom == null) {
             System.out.println("Classroom not found.");
             return;
         }
-        Assignment assignment = new Assignment(details);
-        classroom.addAssignment(assignment);
+
+        Assignment existingAssignment = classroom.findAssignmentByDetails(details);
+        if (existingAssignment != null) {
+            System.out.println("Assignment already scheduled.");
+            return;
+        }
+
+        classroom.addAssignment(new Assignment(details, deadline));
         System.out.println("Assignment for " + className + " has been scheduled.");
-        CustomLogger.logInfo("Scheduled assignment for classroom " + className);
     }
 
     public void submitAssignment(int studentId, String className, String details) {
@@ -61,33 +76,63 @@ public class VirtualClassroomManager {
             System.out.println("Student not found.");
             return;
         }
-        Assignment assignment = findAssignmentByDetails(classroom, details);
+        Assignment assignment = classroom.findAssignmentByDetails(details);
         if (assignment == null) {
             System.out.println("Assignment not found.");
             return;
         }
-        student.submitAssignment(assignment);
+        if (student.hasSubmitted(assignment)) {
+            System.out.println("Assignment already submitted by Student " + studentId + ".");
+            return;
+        }
+        if (assignment.isDeadlineCrossed()) {
+            System.out.println("No longer accepting assignments. The deadline has passed.");
+            student.submitAssignment(assignment, true);
+        } else {
+            student.submitAssignment(assignment, false);
+        }
         System.out.println("Assignment submitted by Student " + studentId + " in " + className + ".");
-        CustomLogger.logInfo("Submitted assignment by Student " + studentId + " in " + className);
     }
 
-    private Assignment findAssignmentByDetails(Classroom classroom, String details) {
-        for (Assignment assignment : classroom.getAssignments()) {
-            if (assignment.getDetails().equals(details)) {
-                return assignment;
+    public void assignMarks(String className, String details, Scanner scanner) {
+        Classroom classroom = classrooms.get(className);
+        if (classroom == null) {
+            System.out.println("Classroom not found.");
+            return;
+        }
+        Assignment assignment = classroom.findAssignmentByDetails(details);
+        if (assignment == null) {
+            System.out.println("Assignment not found.");
+            return;
+        }
+
+        List<Student> students = classroom.getStudents();
+        boolean anySubmission = false;
+
+        for (Student student : students) {
+            if (student.hasSubmitted(assignment)) {
+                anySubmission = true;
+                System.out.println("Enter marks for Student " + student.getId() + ": ");
+                int marks = scanner.nextInt();
+                scanner.nextLine(); // consume newline
+                student.assignMarks(assignment, marks);
+                System.out.println("Marks assigned to Student " + student.getId() + " for assignment in " + className + ".");
             }
         }
-        return null;
+
+        if (!anySubmission) {
+            System.out.println("No submissions found for this assignment.");
+        }
     }
 
     public void listClassrooms() {
         if (classrooms.isEmpty()) {
             System.out.println("No classrooms available.");
-            return;
-        }
-        System.out.println("Classrooms:");
-        for (String className : classrooms.keySet()) {
-            System.out.println("- " + className);
+        } else {
+            System.out.println("Classrooms:");
+            for (String className : classrooms.keySet()) {
+                System.out.println("- " + className);
+            }
         }
     }
 
@@ -99,12 +144,40 @@ public class VirtualClassroomManager {
         }
         List<Student> students = classroom.getStudents();
         if (students.isEmpty()) {
-            System.out.println("No students enrolled in " + className);
+            System.out.println("No students enrolled in " + className + ".");
+        } else {
+            System.out.println("Students in " + className + ":");
+            for (Student student : students) {
+                System.out.println("- " + student.getId());
+            }
+        }
+    }
+
+    public void listSubmittedStudents(String className, String assignmentDetails) {
+        Classroom classroom = classrooms.get(className);
+        if (classroom == null) {
+            System.out.println("Classroom not found.");
             return;
         }
-        System.out.println("Students in " + className + ":");
+        Assignment assignment = classroom.findAssignmentByDetails(assignmentDetails);
+        if (assignment == null) {
+            System.out.println("Assignment not found.");
+            return;
+        }
+        List<Student> students = classroom.getStudents();
+        System.out.println("Students who submitted the assignment:");
         for (Student student : students) {
-            System.out.println("- Student ID: " + student.getId());
+            if (student.hasSubmitted(assignment)) {
+                String submissionStatus = student.isLateSubmission(assignment) ? " (Late Submission)" : "";
+                String markStatus = student.getMarks(assignment) == null ? " (Marks not assigned)" : " (Marks: " + student.getMarks(assignment) + ")";
+                System.out.println("- " + student.getId() + submissionStatus + markStatus);
+            }
+        }
+        System.out.println("Students who did not submit the assignment:");
+        for (Student student : students) {
+            if (!student.hasSubmitted(assignment)) {
+                System.out.println("- " + student.getId());
+            }
         }
     }
 }
