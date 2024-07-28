@@ -10,3 +10,4 @@ public class ListClassroomsCommand implements Command {
         manager.listClassrooms();
     }
 }
+
