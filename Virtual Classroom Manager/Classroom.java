@@ -1,5 +1,4 @@
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class Classroom {
     private String name;
@@ -12,36 +11,40 @@ public class Classroom {
         this.assignments = new ArrayList<>();
     }
 
-    public String getName() {
-        return name;
-    }
-
     public void addStudent(Student student) {
-        if (findStudentById(student.getId()) != null) {
-            System.out.println("Student with ID " + student.getId() + " is already enrolled in " + name);
-            return;
+        if (!students.contains(student)) {
+            students.add(student);
         }
-        students.add(student);
-    }
-
-    public List<Student> getStudents() {
-        return students;
     }
 
     public void addAssignment(Assignment assignment) {
         assignments.add(assignment);
     }
 
-    public List<Assignment> getAssignments() {
-        return assignments;
+    public Assignment findAssignmentByDetails(String details) {
+        for (Assignment assignment : assignments) {
+            if (assignment.getDetails().equals(details)) {
+                return assignment;
+            }
+        }
+        return null;
     }
 
-    public Student findStudentById(int studentId) {
+    public Student findStudentById(int id) {
         for (Student student : students) {
-            if (student.getId() == studentId) {
+            if (student.getId() == id) {
                 return student;
             }
         }
         return null;
     }
+
+    public List<Student> getStudents() {
+        return students;
+    }
+
+    public String getName() {
+        return name;
+    }
 }
+
