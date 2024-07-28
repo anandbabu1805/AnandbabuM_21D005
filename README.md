@@ -8,11 +8,20 @@ Composite Pattern
 The Composite pattern is demonstrated through the Classroom class, which manages students and assignments in a unified manner. Both individual students and assignments are handled uniformly, allowing you to add, retrieve, and manipulate these elements without differentiating between them. This pattern simplifies the management of collections and individual components by treating them in the same way.
 
 SOLID Principles:
-Single Responsibility Principle (SRP): Each class in the code has a single responsibility. For instance, `VirtualClassroomManager` handles classroom management, while `Student` manages student-related data.
-Open/Closed Principle (OCP): The code is designed to be extended without modifying existing code. For example, adding new command types does not require changes to the core logic.
-Liskov Substitution Principle (LSP): The implementation of commands and handling operations ensures that subclasses or extended functionalities can replace the base class without affecting the system’s correctness.
-Interface Segregation Principle (ISP): Commands are processed through specific methods, avoiding unnecessary methods in interfaces.
-Dependency Inversion Principle (DIP): High-level modules (like `Main` class) depend on abstractions (like command processing), rather than on concrete implementations.
+Single Responsibility Principle (SRP)
+In your code, each class adheres to the Single Responsibility Principle by focusing on a single responsibility. For example, the VirtualClassroomManager class is responsible for managing classroom operations, including adding students and scheduling assignments. Similarly, the Student, Classroom, and Assignment classes manage their specific data and functionalities. This clear separation ensures that each class handles only its designated task, making the code easier to maintain and understand.
+
+Open/Closed Principle (OCP)
+Your code follows the Open/Closed Principle by allowing new features or commands to be added without modifying existing code. The Main class processes commands by delegating tasks to the VirtualClassroomManager, which handles various operations. This design makes it possible to extend the system with new functionalities or commands simply by adding new methods or classes, without altering the existing core logic, thus adhering to the principle of being open for extension but closed for modification.
+
+Liskov Substitution Principle (LSP)
+The Liskov Substitution Principle is maintained in your code by ensuring that derived types can be substituted for their base types without affecting the correctness of the program. For instance, if you were to add new types of commands or extend existing functionalities, they would adhere to the same interface or contract as the current implementations. This consistency ensures that new functionalities can replace or extend existing ones without breaking the system.
+
+Interface Segregation Principle (ISP)
+Your code implements the Interface Segregation Principle by ensuring that classes and modules are not forced to depend on methods they do not use. For instance, the VirtualClassroomManager only implements methods relevant to classroom management, and command handling is broken down into specific methods that are used as needed. This prevents any class from being burdened with unnecessary methods, thus maintaining a clean and focused interface.
+
+Dependency Inversion Principle (DIP)
+The Dependency Inversion Principle is followed in your code by ensuring that high-level modules do not depend on low-level modules directly but rather on abstractions. For example, the Main class, which is a high-level module, interacts with the VirtualClassroomManager, which acts as an abstraction layer. This design allows changes in low-level modules to be made without affecting high-level modules, promoting flexibility and maintainability in the code.
 
 Design Patterns:
 Command Pattern: Used to handle various operations through command objects.
